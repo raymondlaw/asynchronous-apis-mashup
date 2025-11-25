@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Usajobs.gov Jobs API Search</title>
+		<style>
+			*,
+			*::before,
+			*::after {
+			  box-sizing: border-box;
+			  font-family:sans-serif;
+			}
+			body, form{
+				margin:20px auto;
+				max-width:800px;
+				overflow-x:hidden;
+			}
+			fieldset{
+				display: flex;
+			}
+			input{
+				height:22px;
+			}
+			input#word{
+				margin: 0 10px;
+			}
+			input#delay_dictionary{
+			    margin: 0 10px;
+				width: 80px;
+			}
+			input#keyword{
+				margin: 0 10px;
+				flex-grow:1;
+			}
+			input#location_name{
+				margin: 0 10px;
+				flex-grow:1;
+			}
+			input#delay_usajobs{
+			    width: 80px;
+			    margin: 0 10px;
+				flex-grow:1;
+			}
+			input[type="submit"]{
+				display: block;
+				margin: 20px auto;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Dictionary + USAJOBS.gov API (Async Demo)</h1>
+		<form action="search" method="get">
+			<fieldset>
+				<legend>Dictionary API</legend>
+				
+				<label for="word">Word (To Look Up):</label>
+				<input id="word" name="word" type="text" />
+				<label for="delay_dictionary">Delay (ms):</label>
+				<input id="delay_dictionary" name="delay_dictionary" type="number" value="0000" step="1000" min="0" max="10000"/>
+				<label>(Max Delay 10000)</label>
+			</fieldset>
+			<fieldset>
+				<legend>USAJOBS.gov API</legend>
+				<label for="keyword">Keyword:</label>
+				<input id="keyword" name="keyword" type="text" />
+				
+				<label for="location_name">Location:</label>
+				<input id="location_name" name="location_name" type="text" />
+				
+				<label for="delay_usajobs">Delay (ms):</label>
+				<input id="delay_usajobs" name="delay_usajobs" type="number" value="0000" step="1000" min="0" max="10000"/>
+			</fieldset>
+			<input type="submit" value="Search" />
+		</form>
+	</body>
+</html>

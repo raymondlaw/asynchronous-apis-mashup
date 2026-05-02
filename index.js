@@ -42,8 +42,15 @@ function handle_request(req, res){
 		form.pipe(res);
     }
     else if (req.url.startsWith("/search")){
+        try {
+            url_object = new URL(req.url, `http://${req.headers.host}`);
+        } catch (e) {
+            console.error("Malformed URL received:", req.url);
+            res.writeHead(400, response_headers);
+            return res.end("<h1>400 Bad Request: Invalid URL</h1>");
+        }
 		res.writeHead(200, response_headers);
-        const user_input = new URL(req.url, `http://${req.headers.host}`).searchParams;
+        const user_input = url_object.searchParams;
 		
         const word = user_input.get("word") || "";
 		const unsanitized_delay_dictionary = parseInt(user_input.get("delay_dictionary")) || 0;
@@ -111,7 +118,7 @@ function parse_dictionary(word_json, status_code, request_data, res, close_after
     const word_obj = JSON.parse(word_json);
     const definition = word_obj?.[0]?.meanings?.[0]?.definitions?.[0]?.definition || "No definition available";
     const results_html = `<div style="width:50%; float:right;"><h1>Results: ${word}</h1><p>${definition}</p></div>`;
-	setTimeout(() => res.write(results_html, close_after_both), delay_dictionary);
+	setTimeout(() => res.write(results_html, 'UTF-8', close_after_both), delay_dictionary);
 }
 function parse_usajobs(job_json, status_code, request_data, res, close_after_both) {
 	const {keyword, location_name, delay_usajobs} = request_data;
@@ -119,7 +126,7 @@ function parse_usajobs(job_json, status_code, request_data, res, close_after_bot
     const jobs = jobs_object?.SearchResult?.SearchResultItems || [];
     const results = jobs.map(format_job).join("");
     const results_html = `<div style="width:50%; float:left;"><h2>Search Results: ${keyword || "All Jobs"} in ${location_name || "Everywhere"}</h2>${results}</div>`;
-	setTimeout(() => res.write(results_html, close_after_both), delay_usajobs);
+	setTimeout(() => res.write(results_html, 'UTF-8', close_after_both), delay_usajobs);
 }
 
 // --- Format Job ---

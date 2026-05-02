@@ -49,26 +49,39 @@ function handle_request(req, res){
             res.writeHead(400, response_headers);
             return res.end("<h1>400 Bad Request: Invalid URL</h1>");
         }
-		res.writeHead(200, response_headers);
         const user_input = url_object.searchParams;
-		
-        const word = user_input.get("word") || "";
-		const unsanitized_delay_dictionary = parseInt(user_input.get("delay_dictionary")) || 0;
-		const delay_dictionary = Math.min(10000, Math.max(0, unsanitized_delay_dictionary));
-        const keyword = user_input.get("keyword") || "";
-        const location_name = user_input.get("location_name") || "";
-		const unsanitized_delay_usajobs = parseInt(user_input.get("delay_usajobs")) || 0;
-		const delay_usajobs = Math.min(10000, Math.max(0, unsanitized_delay_usajobs));
-		
-		close_after_both = latch(2, () => res.end());
-		
-		// async (order not guaranteed)
-		get_dictionary_data(word, delay_dictionary, res, close_after_both);
-        get_job_data(keyword, location_name, delay_usajobs, res, close_after_both);
+		res.writeHead(200, response_headers);
+        const shellStream = fs.createReadStream("html/shell.html.part");
+        shellStream.on('open', () => {
+            // Pipe the shell, but don't let it close the response (end: false)
+            shellStream.pipe(res, { end: false });
+        });
+        shellStream.on('end', () => {
+            const word = user_input.get("word") || "";
+            const unsanitized_delay_dictionary = parseInt(user_input.get("delay_dictionary")) || 0;
+            const delay_dictionary = Math.min(10000, Math.max(0, unsanitized_delay_dictionary));
+            const keyword = user_input.get("keyword") || "";
+            const location_name = user_input.get("location_name") || "";
+            const unsanitized_delay_usajobs = parseInt(user_input.get("delay_usajobs")) || 0;
+            const delay_usajobs = Math.min(10000, Math.max(0, unsanitized_delay_usajobs));
+            
+            close_after_both = latch(2, () => {
+                res.write('</div></body></html>');
+                res.end()
+            });
+            
+            // async (order not guaranteed)
+            get_dictionary_data(word, delay_dictionary, res, close_after_both);
+            get_job_data(keyword, location_name, delay_usajobs, res, close_after_both);
+        });
+    }
+    else if (req.url === '/favicon.ico') {
+        res.writeHead(204); // No content
+        return res.end();
     }
     else{
         res.writeHead(404, response_headers);
-        res.end(`<h1>404 Not Found</h1>`);
+        return res.end(`<h1>404 Not Found</h1>`);
     }
 }
 
@@ -117,7 +130,7 @@ function parse_dictionary(word_json, status_code, request_data, res, close_after
 	const {word, delay_dictionary} = request_data;
     const word_obj = JSON.parse(word_json);
     const definition = word_obj?.[0]?.meanings?.[0]?.definitions?.[0]?.definition || "No definition available";
-    const results_html = `<div style="width:50%; float:right;"><h1>Results: ${word}</h1><p>${definition}</p></div>`;
+    const results_html = `<div style="width:50%; float:right;"><h2>Definition Results: ${word}</h2><p>${definition}</p></div>`;
 	setTimeout(() => res.write(results_html, 'UTF-8', close_after_both), delay_dictionary);
 }
 function parse_usajobs(job_json, status_code, request_data, res, close_after_both) {
@@ -125,7 +138,7 @@ function parse_usajobs(job_json, status_code, request_data, res, close_after_bot
     const jobs_object = JSON.parse(job_json);
     const jobs = jobs_object?.SearchResult?.SearchResultItems || [];
     const results = jobs.map(format_job).join("");
-    const results_html = `<div style="width:50%; float:left;"><h2>Search Results: ${keyword || "All Jobs"} in ${location_name || "Everywhere"}</h2>${results}</div>`;
+    const results_html = `<div style="width:50%; float:left;"><h2>Job Search Results: ${keyword || "All Jobs"} in ${location_name || "Everywhere"}</h2>${results}</div>`;
 	setTimeout(() => res.write(results_html, 'UTF-8', close_after_both), delay_usajobs);
 }
 

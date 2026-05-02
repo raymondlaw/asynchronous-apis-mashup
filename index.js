@@ -21,7 +21,7 @@ const usajobs_request_headers = {
     "Authorization-Key":authorization_key,
 };
 const response_headers = {
-    "Content-Type": "text/html; charset=utf-8",
+    "Content-Type": "text/plain; charset=utf-8",
 	"X-Content-Type-Options": "nosniff",
     "X-Accel-Buffering": "no",      // Disables Nginx buffering
     "Cache-Control": "no-transform" // Tells Cloudflare not to modify/compress the payload
